@@ -1481,9 +1481,16 @@ static int get_nrfx_info(struct flash_bank *bank, struct command_invocation *cmd
 	return ERROR_OK;
 }
 
-static int nrfx_info(struct flash_bank *bank, char *buf, int buf_size)
+
+
+// 	return ERROR_OK;
+// }
+
+// static int nrfx_info(struct flash_bank *bank, char *bu, int buf_size)
+static int nrfx_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int res, written = 0;
+	int res = 0;
+	// int written = 0;
 
 	struct nrfx_info *chip;
 	uint32_t ficr[NRFX_FICR_NREGS];
@@ -1518,18 +1525,22 @@ static int nrfx_info(struct flash_bank *bank, char *buf, int buf_size)
 		}
 	}
 
-	res = snprintf(buf, buf_size,
-		       "\n[factory information control block]\n\n");
-	if (res < 0)
-		return res;
-	written += res;
+	command_print(cmd, "\n[factory information control block]\n");
+	// res = snprintf(buf, buf_size,
+	// 	       "\n[factory information control block]\n\n");
+	// if (res < 0)
+	// 	return res;
+	// written += res;
 	if (ficr_is_implemented(chip, NRFX_FICR_PART)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "part: %"PRIx32"\n",
+		command_print(cmd, "part: %"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_PART)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "part: %"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_PART)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_VARIANT)) {
 		union {
@@ -1538,285 +1549,400 @@ static int nrfx_info(struct flash_bank *bank, char *buf, int buf_size)
 		} v;
 		v.str[4] = 0;
 		v.ul = ficr[reg_index(NRFX_FICR_VARIANT)];
-		res = snprintf(buf + written, buf_size - written,
-			       "variant: %s\n", v.str);
-		if (res < 0)
-			return res;
-		written += res;
+		command_print(cmd, "variant: %s\n", v.str);
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "variant: %s\n", v.str);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_PACKAGE)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "package code: %"PRIu32"\n",
+		command_print(cmd, "package code: %"PRIu32"\n",
 			       ficr[reg_index(NRFX_FICR_PACKAGE)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "package code: %"PRIu32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_PACKAGE)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_RAM)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "total RAM: %uKB\n",
+		command_print(cmd, "total RAM: %uKB\n",
 			       ficr[reg_index(NRFX_FICR_RAM)]);
-		if (res < 0)
-			return res;
-		written += res;
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "total RAM: %uKB\n",
+		// 	       ficr[reg_index(NRFX_FICR_RAM)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_CODEPAGESIZE)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "code page size: %"PRIu32"B\n",
+		command_print(cmd, "code page size: %"PRIu32"B\n",
 			       ficr[reg_index(NRFX_FICR_CODEPAGESIZE)]);
-		if (res < 0)
-			return res;
-		written += res;
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "code page size: %"PRIu32"B\n",
+		// 	       ficr[reg_index(NRFX_FICR_CODEPAGESIZE)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 		if (ficr_is_implemented(chip, NRFX_FICR_CODESIZE)) {
-			res = snprintf(buf + written, buf_size - written,
-				       "code memory size: %"PRIu32"KB\n",
+		command_print(cmd, "code memory size: %"PRIu32"KB\n",
 				       (ficr[reg_index(NRFX_FICR_CODEPAGESIZE)]*
 					ficr[reg_index(NRFX_FICR_CODESIZE)])
 				       >> 10);
-			if (res < 0)
-				return res;
-			written += res;
+
+			// res = snprintf(buf + written, buf_size - written,
+			// 	       "code memory size: %"PRIu32"KB\n",
+			// 	       (ficr[reg_index(NRFX_FICR_CODEPAGESIZE)]*
+			// 		ficr[reg_index(NRFX_FICR_CODESIZE)])
+			// 	       >> 10);
+			// if (res < 0)
+			// 	return res;
+			// written += res;
 		}
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_FLASH)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "code memory size: %uKB\n",
+		command_print(cmd, "code memory size: %uKB\n",
 			       ficr[reg_index(NRFX_FICR_FLASH)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "code memory size: %uKB\n",
+		// 	       ficr[reg_index(NRFX_FICR_FLASH)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_CLENR0)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "code region 0 size: %"PRIu32"kB\n",
+		command_print(cmd, "code region 0 size: %"PRIu32"kB\n",
 			       (ficr[reg_index(NRFX_FICR_CLENR0)] ==
 				0xFFFFFFFF) ? 0 :
 			       ficr[reg_index(NRFX_FICR_CLENR0)] >> 10);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "code region 0 size: %"PRIu32"kB\n",
+		// 	       (ficr[reg_index(NRFX_FICR_CLENR0)] ==
+		// 		0xFFFFFFFF) ? 0 :
+		// 	       ficr[reg_index(NRFX_FICR_CLENR0)] >> 10);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_PPFC)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "pre-programmed code: %s\n",
+		command_print(cmd, "pre-programmed code: %s\n",
 			       ((ficr[reg_index(NRFX_FICR_PPFC)] & 0xFF) ==
 				0x00) ?
 			       "present" : "not present");
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "pre-programmed code: %s\n",
+		// 	       ((ficr[reg_index(NRFX_FICR_PPFC)] & 0xFF) ==
+		// 		0x00) ?
+		// 	       "present" : "not present");
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_NUMRAMBLOCK)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "number of ram blocks: %"PRIu32"\n",
+		command_print(cmd, "number of ram blocks: %"PRIu32"\n",
 			       ficr[reg_index(NRFX_FICR_NUMRAMBLOCK)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "number of ram blocks: %"PRIu32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_NUMRAMBLOCK)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_SIZERAMBLOCK0)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "ram block 0 size: %"PRIu32"B\n",
+		command_print(cmd, "ram block 0 size: %"PRIu32"B\n",
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK0)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "ram block 0 size: %"PRIu32"B\n",
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK0)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_SIZERAMBLOCK1)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "ram block 1 size: %"PRIu32"B\n",
+		command_print(cmd, "ram block 1 size: %"PRIu32"B\n",
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK1)] ==
 			       0xFFFFFFFF ? 0 :
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK1)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "ram block 1 size: %"PRIu32"B\n",
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK1)] ==
+		// 	       0xFFFFFFFF ? 0 :
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK1)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_SIZERAMBLOCK2)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "ram block 1 size: %"PRIu32"B\n",
+		command_print(cmd, "ram block 1 size: %"PRIu32"B\n",
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK2)] ==
 			       0xFFFFFFFF ? 0 :
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK2)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "ram block 1 size: %"PRIu32"B\n",
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK2)] ==
+		// 	       0xFFFFFFFF ? 0 :
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK2)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_SIZERAMBLOCK3)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "ram block 1 size: %"PRIu32"B\n",
+		command_print(cmd, "ram block 1 size: %"PRIu32"B\n",
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK3)] ==
 			       0xFFFFFFFF ? 0 :
 			       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK3)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "ram block 1 size: %"PRIu32"B\n",
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK3)] ==
+		// 	       0xFFFFFFFF ? 0 :
+		// 	       ficr[reg_index(NRFX_FICR_SIZERAMBLOCK3)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_CONFIGID)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "config id: %" PRIx32 "\n",
+		command_print(cmd, "config id: %" PRIx32 "\n",
 			       ficr[reg_index(NRFX_FICR_CONFIGID)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "config id: %" PRIx32 "\n",
+		// 	       ficr[reg_index(NRFX_FICR_CONFIGID)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_DEVICEID0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_DEVICEID1)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "device id: 0x%"PRIx32"%08"PRIx32"\n",
+		command_print(cmd, "device id: 0x%"PRIx32"%08"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_DEVICEID0)],
 			       ficr[reg_index(NRFX_FICR_DEVICEID1)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "device id: 0x%"PRIx32"%08"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_DEVICEID0)],
+		// 	       ficr[reg_index(NRFX_FICR_DEVICEID1)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_ER0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_ER1) &&
 	    ficr_is_implemented(chip, NRFX_FICR_ER2) &&
 	    ficr_is_implemented(chip, NRFX_FICR_ER3)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "encryption root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
+		command_print(cmd, "encryption root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_ER0)],
 			       ficr[reg_index(NRFX_FICR_ER1)],
 			       ficr[reg_index(NRFX_FICR_ER2)],
 			       ficr[reg_index(NRFX_FICR_ER3)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "encryption root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_ER0)],
+		// 	       ficr[reg_index(NRFX_FICR_ER1)],
+		// 	       ficr[reg_index(NRFX_FICR_ER2)],
+		// 	       ficr[reg_index(NRFX_FICR_ER3)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_IR0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_IR1) &&
 	    ficr_is_implemented(chip, NRFX_FICR_IR2) &&
 	    ficr_is_implemented(chip, NRFX_FICR_IR3)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "identity root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
+		command_print(cmd, "identity root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_IR0)],
 			       ficr[reg_index(NRFX_FICR_IR1)],
 			       ficr[reg_index(NRFX_FICR_IR2)],
 			       ficr[reg_index(NRFX_FICR_IR3)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "identity root: 0x%08"PRIx32"%08"PRIx32"%08"PRIx32"%08"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_IR0)],
+		// 	       ficr[reg_index(NRFX_FICR_IR1)],
+		// 	       ficr[reg_index(NRFX_FICR_IR2)],
+		// 	       ficr[reg_index(NRFX_FICR_IR3)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_DEVICEADDRTYPE)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "device address type: 0x%"PRIx32"\n",
+		command_print(cmd, "device address type: 0x%"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_DEVICEADDRTYPE)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "device address type: 0x%"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_DEVICEADDRTYPE)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_DEVICEADDR0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_DEVICEADDR1)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "device address: 0x%"PRIx32"%08"PRIx32"\n",
+		command_print(cmd, "device address: 0x%"PRIx32"%08"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_DEVICEADDR0)],
 			       ficr[reg_index(NRFX_FICR_DEVICEADDR1)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "device address: 0x%"PRIx32"%08"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_DEVICEADDR0)],
+		// 	       ficr[reg_index(NRFX_FICR_DEVICEADDR1)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_OVERRIDEN)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "override enable: %"PRIx32"\n",
+		command_print(cmd, "override enable: %"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_OVERRIDEN)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "override enable: %"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_OVERRIDEN)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_NRF_1MBIT0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_NRF_1MBIT1) &&
 	    ficr_is_implemented(chip, NRFX_FICR_NRF_1MBIT2) &&
 	    ficr_is_implemented(chip, NRFX_FICR_NRF_1MBIT3) &&
 	    ficr_is_implemented(chip, NRFX_FICR_NRF_1MBIT4)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "NRF_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
+		command_print(cmd, "NRF_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_NRF_1MBIT0)],
 			       ficr[reg_index(NRFX_FICR_NRF_1MBIT1)],
 			       ficr[reg_index(NRFX_FICR_NRF_1MBIT2)],
 			       ficr[reg_index(NRFX_FICR_NRF_1MBIT3)],
 			       ficr[reg_index(NRFX_FICR_NRF_1MBIT4)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "NRF_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_NRF_1MBIT0)],
+		// 	       ficr[reg_index(NRFX_FICR_NRF_1MBIT1)],
+		// 	       ficr[reg_index(NRFX_FICR_NRF_1MBIT2)],
+		// 	       ficr[reg_index(NRFX_FICR_NRF_1MBIT3)],
+		// 	       ficr[reg_index(NRFX_FICR_NRF_1MBIT4)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (ficr_is_implemented(chip, NRFX_FICR_BLE_1MBIT0) &&
 	    ficr_is_implemented(chip, NRFX_FICR_BLE_1MBIT1) &&
 	    ficr_is_implemented(chip, NRFX_FICR_BLE_1MBIT2) &&
 	    ficr_is_implemented(chip, NRFX_FICR_BLE_1MBIT3) &&
 	    ficr_is_implemented(chip, NRFX_FICR_BLE_1MBIT4)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "BLE_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
+		command_print(cmd, "BLE_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
 			       ficr[reg_index(NRFX_FICR_BLE_1MBIT0)],
 			       ficr[reg_index(NRFX_FICR_BLE_1MBIT1)],
 			       ficr[reg_index(NRFX_FICR_BLE_1MBIT2)],
 			       ficr[reg_index(NRFX_FICR_BLE_1MBIT3)],
 			       ficr[reg_index(NRFX_FICR_BLE_1MBIT4)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "BLE_1MBIT values: %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32" %"PRIx32"\n",
+		// 	       ficr[reg_index(NRFX_FICR_BLE_1MBIT0)],
+		// 	       ficr[reg_index(NRFX_FICR_BLE_1MBIT1)],
+		// 	       ficr[reg_index(NRFX_FICR_BLE_1MBIT2)],
+		// 	       ficr[reg_index(NRFX_FICR_BLE_1MBIT3)],
+		// 	       ficr[reg_index(NRFX_FICR_BLE_1MBIT4)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
-	res = snprintf(buf + written, buf_size - written,
-		       "\n[user information control block]\n\n");
-	if (res < 0)
-		return res;
-	written += res;
+	command_print(cmd, "\n[user information control block]\n");
+
+	// res = snprintf(buf + written, buf_size - written,
+	// 	       "\n[user information control block]\n\n");
+	// if (res < 0)
+	// 	return res;
+	// written += res;
 	if (uicr_is_implemented(chip, NRFX_UICR_CLENR0)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "code region 0 size: %"PRIu32"kB\n",
+		command_print(cmd, "code region 0 size: %"PRIu32"kB\n",
 			       uicr[reg_index(NRFX_UICR_CLENR0)] == 0xFFFFFFFF ?
 			       0 : uicr[reg_index(NRFX_UICR_CLENR0)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "code region 0 size: %"PRIu32"kB\n",
+		// 	       uicr[reg_index(NRFX_UICR_CLENR0)] == 0xFFFFFFFF ?
+		// 	       0 : uicr[reg_index(NRFX_UICR_CLENR0)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_RBPCONF)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "read back protection configuration: %"PRIx32"\n",
+		command_print(cmd, "read back protection configuration: %"PRIx32"\n",
 			       uicr[reg_index(NRFX_UICR_RBPCONF)] & 0xFFFF);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "read back protection configuration: %"PRIx32"\n",
+		// 	       uicr[reg_index(NRFX_UICR_RBPCONF)] & 0xFFFF);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_RBPCONF)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "reset value for XTALFREQ: %"PRIx32"\n",
+		command_print(cmd, "reset value for XTALFREQ: %"PRIx32"\n",
 			       uicr[reg_index(NRFX_UICR_RBPCONF)] & 0xFFFF);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "reset value for XTALFREQ: %"PRIx32"\n",
+		// 	       uicr[reg_index(NRFX_UICR_RBPCONF)] & 0xFFFF);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_FWID)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "firmware id: 0x%04"PRIx32"\n",
+		command_print(cmd, "firmware id: 0x%04"PRIx32"\n",
 			       uicr[reg_index(NRFX_UICR_FWID)] & 0xFFFF);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "firmware id: 0x%04"PRIx32"\n",
+		// 	       uicr[reg_index(NRFX_UICR_FWID)] & 0xFFFF);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_APPROTECT)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "APPROTECT: %"PRIx32"\n",
+		command_print(cmd, "APPROTECT: %"PRIx32"\n",
 			       uicr[reg_index(NRFX_UICR_APPROTECT)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "APPROTECT: %"PRIx32"\n",
+		// 	       uicr[reg_index(NRFX_UICR_APPROTECT)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_SECUREAPPROTECT)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "SECUREAPPROTECT: %"PRIx32"\n",
+		command_print(cmd, "SECUREAPPROTECT: %"PRIx32"\n",
 			       uicr[reg_index(NRFX_UICR_SECUREAPPROTECT)]);
-		if (res < 0)
-			return res;
-		written += res;
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "SECUREAPPROTECT: %"PRIx32"\n",
+		// 	       uicr[reg_index(NRFX_UICR_SECUREAPPROTECT)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	if (uicr_is_implemented(chip, NRFX_UICR_ERASEPROTECT)) {
-		res = snprintf(buf + written, buf_size - written,
-			       "ERASEPROTECT: %"PRIx32"\n",
-			       uicr[reg_index(NRFX_UICR_ERASEPROTECT)]);
-		if (res < 0)
-			return res;
-		written += res;
+		command_print(cmd, "ERASEPROTECT: %"PRIx32"\n",
+					uicr[reg_index(NRFX_UICR_ERASEPROTECT)]);
+
+		// res = snprintf(buf + written, buf_size - written,
+		// 	       "ERASEPROTECT: %"PRIx32"\n",
+			    //    uicr[reg_index(NRFX_UICR_ERASEPROTECT)]);
+		// if (res < 0)
+		// 	return res;
+		// written += res;
 	}
 	return ERROR_OK;
 }
@@ -1853,7 +1979,7 @@ const struct flash_driver nrf5_flash = {
 	.name			= "nrf5",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf51_flash_bank_command,
-	.info			= get_nrfx_info,
+	.info			= nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1871,7 +1997,7 @@ const struct flash_driver nrf51_flash = {
 	.name			= "nrf51",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf51_flash_bank_command,
-	.info			= get_nrfx_info,
+	.info			= nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1887,7 +2013,7 @@ const struct flash_driver nrf52_flash = {
 	.name			= "nrf52",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf52_flash_bank_command,
-	.info			= get_nrfx_info,
+	.info			= nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1903,7 +2029,7 @@ const struct flash_driver nrf91_flash = {
 	.name			= "nrf91",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf91_flash_bank_command,
-	.info			= get_nrfx_info,
+	.info			= nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
