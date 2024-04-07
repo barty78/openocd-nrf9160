@@ -23,6 +23,7 @@
 #endif
 
 #include "imp.h"
+#include <helper/binarybuffer.h>
 #include <target/algorithm.h>
 #include <target/armv7m.h>
 #include <helper/types.h>
@@ -759,14 +760,14 @@ static int nrfx_protect_check(struct flash_bank *bank)
 	}
 
 no_clenr0:
-	for (int i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected =
 			clenr0 != 0xFFFFFFFF && bank->sectors[i].offset < clenr0;
 
 	return ERROR_OK;
 }
 
-static int nrfx_protect(struct flash_bank *bank, int set, int first, int last)
+static int nrfx_protect(struct flash_bank *bank, int set, unsigned int first, unsigned int last)
 {
 	int res;
 	uint32_t clenr0, ppfc;
@@ -939,7 +940,7 @@ static int nrfx_probe(struct flash_bank *bank)
 
 		/* Fill out the sector information: all NRFX sectors are the same size and
 		 * there is always a fixed number of them. */
-		for (int i = 0; i < bank->num_sectors; i++) {
+		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 			bank->sectors[i].size = chip->code_page_size;
 			bank->sectors[i].offset	= i * chip->code_page_size;
 
@@ -1181,7 +1182,7 @@ error:
 	return res;
 }
 
-static int nrfx_erase(struct flash_bank *bank, int first, int last)
+static int nrfx_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
 {
 	int res;
 	struct nrfx_info *chip;
@@ -1191,7 +1192,7 @@ static int nrfx_erase(struct flash_bank *bank, int first, int last)
 		return res;
 
 	/* For each sector to be erased */
-	for (int s = first; s <= last && res == ERROR_OK; s++)
+	for (unsigned int s = first; s <= last && res == ERROR_OK; s++)
 		res = nrfx_erase_page(bank, chip, &bank->sectors[s]);
 
 	return res;
@@ -1333,7 +1334,7 @@ static int nrfx_flash_bank_command(struct flash_bank *bank, int family)
 		bank->bank_number = 1;
 		break;
 	default:
-		LOG_ERROR("Invalid bank address 0x%08" PRIx32, bank->base);
+		LOG_ERROR("Invalid bank address 0x%08" PRIx64, bank->base);
 		return ERROR_FAIL;
 	}
 
@@ -1474,6 +1475,11 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 	xcat(xcat(nrf,f),_uicr_registers)[NRFX_UICR_ ## r]
 
 #define uicr5_addr(r) uicr_addr(r, 5)
+
+static int get_nrfx_info(struct flash_bank *bank, struct command_invocation *cmd)
+{
+	return ERROR_OK;
+}
 
 static int nrfx_info(struct flash_bank *bank, char *buf, int buf_size)
 {
@@ -1843,11 +1849,11 @@ static const struct command_registration nrf5_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct flash_driver nrf5_flash = {
+const struct flash_driver nrf5_flash = {
 	.name			= "nrf5",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf51_flash_bank_command,
-	.info			= nrfx_info,
+	.info			= get_nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1861,11 +1867,11 @@ struct flash_driver nrf5_flash = {
 
 /* We need to retain the flash-driver name as well as the commands
  * for backwards compatability */
-struct flash_driver nrf51_flash = {
+const struct flash_driver nrf51_flash = {
 	.name			= "nrf51",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf51_flash_bank_command,
-	.info			= nrfx_info,
+	.info			= get_nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1877,11 +1883,11 @@ struct flash_driver nrf51_flash = {
 	.free_driver_priv	= nrfx_free_driver_priv,
 };
 
-struct flash_driver nrf52_flash = {
+const struct flash_driver nrf52_flash = {
 	.name			= "nrf52",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf52_flash_bank_command,
-	.info			= nrfx_info,
+	.info			= get_nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
@@ -1893,11 +1899,11 @@ struct flash_driver nrf52_flash = {
 	.free_driver_priv	= nrfx_free_driver_priv,
 };
 
-struct flash_driver nrf91_flash = {
+const struct flash_driver nrf91_flash = {
 	.name			= "nrf91",
 	.commands		= nrf5_command_handlers,
 	.flash_bank_command	= nrf91_flash_bank_command,
-	.info			= nrfx_info,
+	.info			= get_nrfx_info,
 	.erase			= nrfx_erase,
 	.protect		= nrfx_protect,
 	.write			= nrfx_write,
